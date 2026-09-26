@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Penilaian Lomba</title>
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-family:Arial,Helvetica,sans-serif;
+  background:#f2f4f7;
+  color:#172033;
+}
+.card{
+  width:min(440px,92%);
+  background:#fff;
+  border-radius:20px;
+  padding:32px 24px;
+  box-shadow:0 8px 30px rgba(0,0,0,.10);
+  text-align:center;
+}
+h1{margin:0 0 8px;font-size:28px}
+p{margin:0 0 28px;color:#6b7280}
+.buttons{display:grid;gap:14px}
+a{
+  display:block;
+  padding:17px;
+  border-radius:12px;
+  text-decoration:none;
+  font-size:18px;
+  font-weight:bold;
+}
+.server{background:#2563eb;color:#fff}
+.display{background:#111827;color:#fff}
+a:active{transform:scale(.98)}
+.footer{margin-top:24px;font-size:12px;color:#9ca3af}
+</style>
+</head>
+<body>
+
+<div class="card">
+  <h1>Penilaian Lomba</h1>
+  <p>Silakan pilih halaman yang ingin dibuka.</p>
+
+  <div class="buttons">
+    <a class="server" href="server.html">🖥️ Server / Operator</a>
+    <a class="display" href="display.html">📺 Display Hasil</a>
+  </div>
+
+  <div class="footer">Realtime Firebase</div>
+</div>
+
+</body>
+</html>
