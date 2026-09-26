@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Penilaian Realtime</title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;font-family:Arial,Helvetica,sans-serif;background:#080b12;color:#fff}
+body{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+.box{width:min(620px,100%);text-align:center}
+h1{margin:0;font-size:clamp(32px,7vw,58px);letter-spacing:.5px}
+p{color:#9ca3af;margin:12px 0 34px;font-size:16px}
+.menu{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+a{display:flex;align-items:center;justify-content:center;min-height:130px;border-radius:18px;background:#151a24;color:#fff;text-decoration:none;font-size:22px;font-weight:700;border:1px solid #242b38;transition:.15s}
+a:hover{transform:translateY(-2px);background:#1c2330}
+.small{margin-top:28px;color:#667085;font-size:12px}
+@media(max-width:560px){.menu{grid-template-columns:1fr}a{min-height:100px}}
+</style>
+</head>
+<body>
+<div class="box">
+  <h1>PENILAIAN REALTIME</h1>
+  <p>Sistem penilaian dan hasil pertandingan secara realtime</p>
+  <div class="menu">
+    <a href="./server.html">SERVER / JURI</a>
+    <a href="./display.html">DISPLAY HASIL</a>
+    <a href="./setting.html">SETTING</a>
+  </div>
+  <div class="small">Firebase Realtime Database</div>
+</div>
+</body>
+</html>

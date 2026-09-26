@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Setting Penilaian</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f2f4f7;color:#172033}
+header{background:#111827;color:#fff;padding:16px 20px}
+.header-inner{max-width:900px;margin:auto;display:flex;justify-content:space-between;align-items:center;gap:15px}
+h1{margin:0;font-size:21px}
+.back{color:#fff;text-decoration:none;background:#374151;padding:9px 12px;border-radius:9px;font-size:13px;font-weight:bold}
+.container{max-width:900px;margin:auto;padding:18px}
+.panel{background:#fff;border-radius:14px;padding:20px;margin-bottom:16px;box-shadow:0 2px 8px rgba(0,0,0,.07)}
+.title{font-size:19px;font-weight:bold;margin-bottom:7px}
+.sub{font-size:13px;color:#6b7280;line-height:1.5}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:18px}
+.box{border:1px solid #e5e7eb;border-radius:12px;padding:16px}
+.box h2{margin:0 0 6px;font-size:16px}
+.field{margin-top:14px}
+label{display:block;font-size:13px;font-weight:bold;margin-bottom:6px}
+input{width:100%;font:inherit;border:1px solid #d1d5db;border-radius:9px;padding:11px 12px}
+button{font:inherit;border:0;border-radius:9px;padding:11px 15px;cursor:pointer;font-weight:bold}
+.save{background:#16a34a;color:#fff}
+.status{margin-top:12px;font-size:13px;color:#6b7280}
+.error{display:none;background:#fee2e2;color:#991b1b;border:1px solid #fecaca;border-radius:10px;padding:12px;margin-bottom:16px;white-space:pre-wrap}
+.example{margin-top:14px;padding:12px;border-radius:10px;background:#f8fafc;color:#475569;font-size:13px}
+@media(max-width:650px){.grid{grid-template-columns:1fr}.header-inner{align-items:flex-start;flex-direction:column}}
+</style>
+</head>
+<body>
+<header>
+<div class="header-inner">
+  <div>
+    <h1>Setting Penilaian</h1>
+    <div style="font-size:12px;color:#9ca3af;margin-top:3px">Atur tombol tambah dan kurang skor</div>
+  </div>
+  <a class="back" href="./server.html">← Kembali ke Server</a>
+</div>
+</header>
+
+<main class="container">
+<div id="errorBox" class="error"></div>
+
+<section class="panel">
+  <div class="title">Nilai Tombol Skor</div>
+  <div class="sub">
+    Angka di bawah menentukan besar perubahan skor ketika tombol ditekan.
+    Nilai default adalah −10, −1, +1, dan +10.
+  </div>
+
+  <div class="grid">
+    <div class="box">
+      <h2>Kurangi Skor</h2>
+      <div class="field">
+        <label for="minus1">Tombol Kurang 1</label>
+        <input id="minus1" type="number" step="any" min="0">
+      </div>
+      <div class="field">
+        <label for="minus2">Tombol Kurang 2</label>
+        <input id="minus2" type="number" step="any" min="0">
+      </div>
+    </div>
+
+    <div class="box">
+      <h2>Tambah Skor</h2>
+      <div class="field">
+        <label for="plus1">Tombol Tambah 1</label>
+        <input id="plus1" type="number" step="any" min="0">
+      </div>
+      <div class="field">
+        <label for="plus2">Tombol Tambah 2</label>
+        <input id="plus2" type="number" step="any" min="0">
+      </div>
+    </div>
+  </div>
+
+  <div class="example">
+    Contoh: isi <b>25</b> pada tombol tambah, maka server akan menampilkan <b>+25</b>.
+    Skor boleh turun melewati 0, misalnya <b>−5</b>, <b>−20</b>, dan seterusnya.
+  </div>
+
+  <div style="margin-top:18px">
+    <button class="save" id="save">Simpan Setting</button>
+    <div class="status" id="status">Memuat setting...</div>
+  </div>
+</section>
+</main>
+
+<script type="module">
+import {initializeApp} from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
+import {getDatabase,ref,onValue,set} from "https://www.gstatic.com/firebasejs/12.2.1/firebase-database.js";
+import {firebaseConfig} from "./config.js";
+
+const app=initializeApp(firebaseConfig);
+const db=getDatabase(app);
+const $=id=>document.getElementById(id);
+
+onValue(ref(db,"competition/settings/scoreControls"),s=>{
+  const v=s.val()||{};
+  $("minus1").value=Number(v?.minus?.[0])||10;
+  $("minus2").value=Number(v?.minus?.[1])||1;
+  $("plus1").value=Number(v?.plus?.[0])||1;
+  $("plus2").value=Number(v?.plus?.[1])||10;
+  $("status").textContent="Setting tersimpan di Firebase.";
+},e=>showError(e));
+
+$("save").onclick=async()=>{
+  try{
+    const minus1=Number($("minus1").value);
+    const minus2=Number($("minus2").value);
+    const plus1=Number($("plus1").value);
+    const plus2=Number($("plus2").value);
+
+    if(![minus1,minus2,plus1,plus2].every(Number.isFinite) ||
+       [minus1,minus2,plus1,plus2].some(v=>v<0)){
+      alert("Semua nilai harus berupa angka 0 atau lebih.");
+      return;
+    }
+
+    await set(ref(db,"competition/settings/scoreControls"),{
+      minus:[minus1,minus2],
+      plus:[plus1,plus2]
+    });
+
+    $("status").textContent="Setting berhasil disimpan.";
+    $("errorBox").style.display="none";
+  }catch(e){showError(e)}
+};
+
+function showError(e){
+  console.error(e);
+  const box=$("errorBox");
+  box.style.display="block";
+  box.textContent="Firebase error: "+(e?.code||"unknown")+"\n"+(e?.message||String(e));
+}
+</script>
+</body>
+</html>
