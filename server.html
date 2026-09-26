@@ -73,15 +73,15 @@ button:active{transform:scale(.97)}
 import {initializeApp} from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
 import {getDatabase,ref,onValue,set,update,push,remove,runTransaction} from "https://www.gstatic.com/firebasejs/12.2.1/firebase-database.js";
 
-/* ===== ISI DENGAN CONFIG FIREBASE ANDA ===== */
-const firebaseConfig={
-  apiKey:"ISI_API_KEY",
-  authDomain:"ISI_PROJECT.firebaseapp.com",
-  databaseURL:"https://ISI_PROJECT-default-rtdb.firebaseio.com",
-  projectId:"ISI_PROJECT",
-  storageBucket:"ISI_PROJECT.firebasestorage.app",
-  messagingSenderId:"ISI_MESSAGING_SENDER_ID",
-  appId:"ISI_APP_ID"
+/* Firebase Config */
+const firebaseConfig = {
+  apiKey: "AIzaSyCx9UhOogtxuaqeXqNerXBqPNhCT441-k4",
+  authDomain: "penilaian-ea638.firebaseapp.com",
+  databaseURL: "https://penilaian-ea638-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "penilaian-ea638",
+  storageBucket: "penilaian-ea638.firebasestorage.app",
+  messagingSenderId: "676085464375",
+  appId: "1:676085464375:web:3ff014f7e736a2021a6eb2"
 };
 
 const app=initializeApp(firebaseConfig);
@@ -114,20 +114,27 @@ onValue(ref(db,"competition/scores"),s=>{
 });
 
 $("addRound").onclick=async()=>{
-  const name=$("roundName").value.trim();
-  if(!name)return alert("Masukkan nama ronde.");
-  const r=push(ref(db,"competition/rounds"));
-  await set(r,{name,order:Object.keys(rounds).length+1,createdAt:Date.now()});
-  activeRoundId=r.key;
-  $("roundName").value="";
+  try{
+    const name=$("roundName").value.trim();
+    if(!name)return alert("Masukkan nama ronde.");
+    const r=push(ref(db,"competition/rounds"));
+    const maxOrder=Object.values(rounds).reduce((m,x)=>Math.max(m,Number(x?.order)||0),0);
+    await set(r,{name,order:maxOrder+1,createdAt:Date.now()});
+    activeRoundId=r.key;
+    $("roundName").value="";
+    renderRounds(); render();
+  }catch(e){showError(e)}
 };
 
 $("addParticipant").onclick=async()=>{
-  const name=$("participantName").value.trim();
-  if(!name)return alert("Masukkan nama peserta.");
-  const r=push(ref(db,"competition/participants"));
-  await set(r,{name,order:Object.keys(participants).length+1,createdAt:Date.now()});
-  $("participantName").value="";
+  try{
+    const name=$("participantName").value.trim();
+    if(!name)return alert("Masukkan nama peserta.");
+    const r=push(ref(db,"competition/participants"));
+    const maxOrder=Object.values(participants).reduce((m,x)=>Math.max(m,Number(x?.order)||0),0);
+    await set(r,{name,order:maxOrder+1,createdAt:Date.now()});
+    $("participantName").value="";
+  }catch(e){showError(e)}
 };
 
 function renderRounds(){
@@ -188,38 +195,56 @@ function render(){
 }
 
 async function changeScore(id,delta){
-  if(!activeRoundId)return;
-  const r=ref(db,`competition/scores/${activeRoundId}/${id}`);
-  await runTransaction(r,current=>{
-    let n=Number(current||0)+delta;
-    return Math.max(0,n);
-  });
+  try{
+    if(!activeRoundId){
+      alert("Pilih atau buat ronde terlebih dahulu.");
+      return;
+    }
+    const r=ref(db,`competition/scores/${activeRoundId}/${id}`);
+    await runTransaction(r,current=>{
+      const n=Number(current||0)+delta;
+      return Math.max(0,n);
+    });
+  }catch(e){showError(e)}
 }
 
 async function editScore(id){
-  if(!activeRoundId)return;
-  const current=Number(scores?.[activeRoundId]?.[id]??0);
-  const input=prompt("Masukkan nilai baru:",current);
-  if(input===null)return;
-  const n=Number(input);
-  if(!Number.isFinite(n)||n<0)return alert("Nilai tidak valid.");
-  await set(ref(db,`competition/scores/${activeRoundId}/${id}`),n);
+  try{
+    if(!activeRoundId){alert("Pilih atau buat ronde terlebih dahulu.");return;}
+    const current=Number(scores?.[activeRoundId]?.[id]??0);
+    const input=prompt("Masukkan nilai baru:",current);
+    if(input===null)return;
+    const n=Number(input);
+    if(!Number.isFinite(n)||n<0)return alert("Nilai tidak valid.");
+    await set(ref(db,`competition/scores/${activeRoundId}/${id}`),n);
+  }catch(e){showError(e)}
 }
 
 async function editName(id){
-  const p=participants[id];if(!p)return;
-  const name=prompt("Nama peserta:",p.name||"");
-  if(name===null||!name.trim())return;
-  await update(ref(db,`competition/participants/${id}`),{name:name.trim()});
+  try{
+    const p=participants[id];if(!p)return;
+    const name=prompt("Nama peserta:",p.name||"");
+    if(name===null||!name.trim())return;
+    await update(ref(db,`competition/participants/${id}`),{name:name.trim()});
+  }catch(e){showError(e)}
 }
 
 async function deleteParticipant(id){
-  const p=participants[id];if(!p)return;
-  if(!confirm(`Hapus peserta "${p.name}"?`))return;
-  await remove(ref(db,`competition/participants/${id}`));
-  for(const rid of Object.keys(scores||{})){
-    await remove(ref(db,`competition/scores/${rid}/${id}`));
-  }
+  try{
+    const p=participants[id];if(!p)return;
+    if(!confirm(`Hapus peserta "${p.name}"?`))return;
+    await remove(ref(db,`competition/participants/${id}`));
+    for(const rid of Object.keys(scores||{})){
+      await remove(ref(db,`competition/scores/${rid}/${id}`));
+    }
+  }catch(e){showError(e)}
+}
+
+function showError(e){
+  console.error(e);
+  const code=e?.code||"unknown";
+  const msg=e?.message||String(e);
+  alert("Firebase error: "+code+"\\n"+msg+"\\n\\nPeriksa Realtime Database dan Database Rules.");
 }
 
 function esc(v){
